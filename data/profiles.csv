@@ -1,0 +1,20 @@
+name,status,picture,location,relationship_status,age,occupation,astrological_sign,friends
+Alice,Feeling happy,alice.jpg,Seattle,Single,30,Engineer,Aries,Bob|Charlie
+Bob,Excited for the weekend,,San Francisco,Married,35,Artist,Taurus,Alice|Dana
+Charlie,Working hard,,New York,Single,25,Teacher,Gemini,Alice|Eve
+Dana,On vacation,dana.jpg,Miami,Single,28,Developer,Cancer,Bob|Riley
+Eve,Reading a book,,Boston,In a relationship,32,Scientist,Leo,Charlie|Sophia
+Frank,Going for a run,frank.jpg,Chicago,Single,40,Manager,Virgo,Hannah|Mia
+Grace,Cooking dinner,,Houston,Married,38,Chef,Libra,Noah|Sophia
+Hannah,Studying for exams,,Seattle,Single,22,Student,Scorpio,Frank|Olivia
+Ian,Playing guitar,,San Francisco,Single,27,Musician,Sagittarius,Jack|Paul
+Jack,Traveling,jack.jpg,New York,Single,34,Photographer,Capricorn,Ian|Quinn
+Kara,Working out,,Miami,Single,29,Fitness Trainer,Aquarius,Dana|Riley
+Leo,Gardening,leo.jpg,Boston,Single,36,Landscape Designer,Pisces,Eve|Noah
+Mia,Learning to code,,Chicago,In a relationship,26,Data Scientist,Aries,Frank|Olivia
+Noah,Baking cookies,noah.jpg,Houston,Married,37,Baker,Taurus,Grace|Leo
+Olivia,Painting,,Seattle,Single,31,Artist,Gemini,Hannah|Mia
+Paul,Writing a novel,,San Francisco,Single,33,Author,Cancer,Ian|Quinn
+Quinn,Walking the dog,,New York,In a relationship,24,Veterinarian,Leo,Jack|Paul
+Riley,Swimming,,Miami,Single,28,Swim Coach,Virgo,Dana|Kara
+Sophia,Dancing,sophia.jpg,Boston,Single,30,Dancer,Libra,Eve|Grace
