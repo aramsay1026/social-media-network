@@ -13,15 +13,16 @@ class ProfileManager:
     # get_profile: O(1) average
     # connect_profiles: O(1) average
     # display_profiles: O(n)
-    # get_friends_of_friends: O(V + E) in worst case (depends on network size)
+    # get_friends_of_friends: O(V + E)
 
     def __init__(self):
         self.profiles = LinkedDictionary()   # name -> UserProfile
         self.graph = UndirectedGraph()       # relationships
 
-    def add_profile(self, name, location, relationship_status, age, occupation, astrological_sign, status=""):
+    def add_profile(self, name, location, relationship_status, age,
+                    occupation, astrological_sign, status=""):
         if self.profiles.get_value(name) is not None:
-            return False  # profile already exists
+            return False
 
         profile = UserProfile(
             name=name,
@@ -41,15 +42,13 @@ class ProfileManager:
         return self.profiles.get_value(name)
 
     def remove_profile(self, name):
-        # Remove the profile from the dictionary and remove their vertex from the graph.
-        # Simplest safe approach is to rebuild the graph without that user.
+        # Remove the profile from the dictionary and rebuild the graph
+
         if self.profiles.get_value(name) is None:
             return False
 
-        # Remove from profiles dictionary
         self.profiles.remove(name)
 
-        # Rebuild graph from remaining profiles + their current edges
         remaining_names = self.profiles.get_keys()
         old_edges = self.graph.get_edges()
 
@@ -58,20 +57,18 @@ class ProfileManager:
             self.graph.add_vertex(n)
 
         for u, v, w in old_edges:
-            if u != name and v != name and u in remaining_names and v in remaining_names:
+            if u != name and v != name:
                 self.graph.add_edge(u, v, w)
 
-        # Also remove from other profiles' friend lists (if you’re using it)
         for n in remaining_names:
-            p = self.profiles.get_value(n)
-            if p is not None:
-                p.remove_friend(name)
+            profile = self.profiles.get_value(n)
+            if profile is not None:
+                profile.remove_friend(name)
 
         return True
 
     def connect_profiles(self, name1, name2, weight=0):
-        # Create a friendship connection between two existing profiles.
-        # weight is optional (extra credit uses 1 for close friend, 0 otherwise).
+        # Create a friendship connection between two profiles
 
         p1 = self.profiles.get_value(name1)
         p2 = self.profiles.get_value(name2)
@@ -80,16 +77,13 @@ class ProfileManager:
             return False
 
         self.graph.add_edge(name1, name2, weight)
-
-        # keep profile-level friend lists in sync (optional, but helpful)
         p1.add_friend(name2)
         p2.add_friend(name1)
 
         return True
 
     def display_profiles(self):
-        # For the menu: you’ll ask BFS vs DFS elsewhere
-       #  This just returns all profile names
+        # Returns all profile names
         return self.profiles.get_keys()
 
     def display_profile_details(self, name):
@@ -100,7 +94,8 @@ class ProfileManager:
         profile.print_details()
 
     def get_friends_of_friends(self, name):
-        # Friends-of-friends = (neighbors of neighbors) minus direct neighbors minus self.
+        # Friends-of-friends = neighbors of neighbors minus direct friends
+
         if not self.graph.contains(name):
             return []
 
@@ -108,7 +103,7 @@ class ProfileManager:
         if user_vertex is None:
             return []
 
-        direct_friends = set([nbr.get_id() for nbr in user_vertex.get_connections()])
+        direct_friends = set(nbr.get_id() for nbr in user_vertex.get_connections())
         fof = set()
 
         for friend_name in direct_friends:
@@ -118,19 +113,18 @@ class ProfileManager:
             for nbr in friend_vertex.get_connections():
                 fof.add(nbr.get_id())
 
-        # remove direct friends and the user
         fof.discard(name)
-        fof = fof - direct_friends
+        fof -= direct_friends
 
-        return sorted(list(fof))
+        return sorted(fof)
 
     def read_profiles_from_csv(self, file_path):
-       #  Expected header:
-       # name,status,picture,location,relationship_status,age,occupation,astrological_sign,friends
-       # friends column uses | like: Bob|Charlie
+        # Expected header:
+        # name,status,picture,location,relationship_status,age,occupation,astrological_sign,friends
+        # friends column uses | like: Bob|Charlie
 
-        # Pass 1: create all profiles
         rows = []
+
         with open(file_path, newline="", encoding="utf-8") as f:
             reader = csv.DictReader(f)
             for row in reader:
@@ -153,28 +147,85 @@ class ProfileManager:
 
                 if self.profiles.get_value(name) is None:
                     self.add_profile(
-                        name=name,
-                        location=location,
-                        relationship_status=relationship_status,
-                        age=age,
-                        occupation=occupation,
-                        astrological_sign=astrological_sign,
-                        status=status
+                        name,
+                        location,
+                        relationship_status,
+                        age,
+                        occupation,
+                        astrological_sign,
+                        status
                     )
 
-        # Pass 2: connect friends (only if friend exists in profiles)
         for row in rows:
             name = row.get("name", "").strip()
             friends_str = row.get("friends", "").strip()
             if not name or not friends_str:
                 continue
 
-            friend_names = [f.strip() for f in friends_str.split("|") if f.strip()]
-            for friend in friend_names:
+            for friend in friends_str.split("|"):
+                friend = friend.strip()
                 if self.profiles.get_value(friend) is not None:
-                    self.connect_profiles(name, friend, weight=0)
+                    self.connect_profiles(name, friend)
 
-    def create_user_graph(self, current_user, depth=1):
-        # TODO: build subgraph of nodes within 'depth' hops of current_user
-        # TODO: render with graphviz (dot) to png
-        pass
+    def create_user_graph(self, current_user, depth=1, out_path="AliceNetwork"):
+        # Creates a graph of the current user's network within N hops
+        # Tries to output PNG using graphviz, otherwise writes DOT
+
+        if not self.graph.contains(current_user):
+            print("Current user not found in graph.")
+            return None
+
+        nodes = {current_user}
+        frontier = {current_user}
+
+        for _ in range(depth):
+            next_frontier = set()
+            for name in frontier:
+                vertex = self.graph.get_vertex(name)
+                if vertex is None:
+                    continue
+                for nbr in vertex.get_connections():
+                    nbr_name = nbr.get_id()
+                    if nbr_name not in nodes:
+                        nodes.add(nbr_name)
+                        next_frontier.add(nbr_name)
+            frontier = next_frontier
+
+        edges = []
+        for u, v, w in self.graph.get_edges():
+            if u in nodes and v in nodes:
+                edges.append((u, v, w))
+
+        try:
+            from graphviz import Graph
+
+            g = Graph("Network", format="png")
+            g.attr(label=f"{current_user}'s Network (depth={depth})", labelloc="t")
+
+            for n in sorted(nodes):
+                g.node(n)
+
+            for u, v, w in edges:
+                g.edge(u, v, label=str(w) if w is not None else "")
+
+            output_file = g.render(filename=out_path, cleanup=True)
+            print("Wrote:", output_file)
+            return output_file
+
+        except Exception:
+            dot_path = f"{out_path}.dot"
+            with open(dot_path, "w", encoding="utf-8") as f:
+                f.write("graph Network {\n")
+                f.write(
+                    f'  labelloc="t"; label="{current_user}\'s Network (depth={depth})";\n'
+                )
+                for n in sorted(nodes):
+                    f.write(f'  "{n}";\n')
+                for u, v, w in edges:
+                    label = f' [label="{w}"]' if w is not None else ""
+                    f.write(f'  "{u}" -- "{v}"{label};\n')
+                f.write("}\n")
+
+            print(f"Wrote DOT file: {dot_path}")
+            print(f"dot -Tpng {dot_path} -o {out_path}.png")
+            return dot_path
