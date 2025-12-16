@@ -80,7 +80,7 @@ class UndirectedGraph:
         for from_key, vertex in self.vert_list.items():
             for nbr in vertex.get_connections():
                 to_key = nbr.get_id()
-                pair = tuple(sorted([from_key, to_key]))
+                pair = tuple([from_key, to_key])
                 if pair not in seen:
                     seen.add(pair)
                     edges.append((from_key, to_key, vertex.get_weight(nbr)))
