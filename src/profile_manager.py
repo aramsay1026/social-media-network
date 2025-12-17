@@ -177,11 +177,13 @@ class ProfileManager:
 
         nodes = {current_user}
         frontier = {current_user}
-
+        edges_list = self.graph.get_edges()
+        edges = []
         for _ in range(depth):
             next_frontier = set()
             for name in frontier:
                 vertex = self.graph.get_vertex(name)
+                vertex_id = vertex.get_id()
                 if vertex is None:
                     continue
                 for nbr in vertex.get_connections():
@@ -189,24 +191,27 @@ class ProfileManager:
                     if nbr_name not in nodes:
                         nodes.add(nbr_name)
                         next_frontier.add(nbr_name)
+                    if (vertex_id,nbr_name,0) in edges_list:
+                        edges.append((vertex_id,nbr_name,0))
             frontier = next_frontier
 
-        edges = []
-        for u, v, w in self.graph.get_edges():
-            if u in nodes and v in nodes:
-                edges.append((u, v, w))
-
         try:
-            from graphviz import Graph
+            from graphviz import Digraph
 
-            g = Graph("Network", format="png")
+            g = Digraph("Network", format="png")
             g.attr(label=f"{current_user}'s Network (depth={depth})", labelloc="t")
 
             for n in sorted(nodes):
                 g.node(n)
 
+            drawn = set()
             for u, v, w in edges:
-                g.edge(u, v, label=str(w) if w is not None else "")
+                g.edge(u, v, label=str(w) if w not in (None, 0) else None)
+                drawn.add((u, v))
+                # Only draw reverse edge if it exists in the data
+                if (v, u) in edges and (v, u) not in drawn:
+                    g.edge(v, u, label=str(w) if w not in (None, 0) else None)
+                    drawn.add((v, u))
 
             output_file = g.render(filename=out_path, cleanup=True)
             print("Wrote:", output_file)
@@ -222,7 +227,7 @@ class ProfileManager:
                 for n in sorted(nodes):
                     f.write(f'  "{n}";\n')
                 for u, v, w in edges:
-                    label = f' [label="{w}"]' if w is not None else ""
+                    label = f' [label="{w}"]' if w not in (None, 0) else None
                     f.write(f'  "{u}" -- "{v}"{label};\n')
                 f.write("}\n")
 
