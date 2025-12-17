@@ -1,5 +1,3 @@
-# Worked on by: Amy Ramsay
-
 import csv
 
 from linked_adts import LinkedDictionary

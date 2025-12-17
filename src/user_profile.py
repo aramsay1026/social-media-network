@@ -1,5 +1,3 @@
-# Worked on by: Amy Ramsay
-
 class UserProfile:
     # Runtime:
     # add_friend: O(1)

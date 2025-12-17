@@ -1,5 +1,3 @@
-# Worked on by: Amy Ramsay
-
 from linked_adts import LinkedQueue
 
 class Vertex:

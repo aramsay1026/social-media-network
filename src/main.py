@@ -1,5 +1,3 @@
-# Worked on by: Amy Ramsay
-
 from profile_manager import ProfileManager
 
 
@@ -282,13 +280,23 @@ def run():
         print("4. Add a friend")
         print("5. View your friend list")
         print("6. View your friend's friend list")
-        print("7. Delete a profile")
-        print("8. Switch the current user")
-        print("9. Read profiles from CSV")
+
+        if mode == "ADMIN":
+            print("7. Delete a profile")
+            print("8. Switch the current user")
+            print("9. Read profiles from CSV")
+        else:
+            print("7. Delete your profile")
+            # hide 8 and 9 in USER mode because they don't make sense for normal users
+
         print("10. Create graph of current user's network")
         print("11. Logout (end program)")
 
         choice = prompt_int("Choose an option (1-11): ", 1, 11)
+
+        if mode == "USER" and choice in (8, 9):
+            print("That option is only available in ADMIN mode.")
+            continue
 
         if choice == 1:
             new_name = create_profile_flow(pm)
